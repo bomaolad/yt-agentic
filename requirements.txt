@@ -1,4 +1,0 @@
-google-genai
-ddgs
-googlesearch-python
-python-dotenv

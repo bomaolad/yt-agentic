@@ -1,4 +1,4 @@
-google-genai>=0.3.0
+# DeepSeek API uses requests (already included)
 python-dotenv>=1.0.0
 requests>=2.31.0
 Pillow>=10.0.0

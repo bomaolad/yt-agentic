@@ -1,6 +1,6 @@
 import os
 import sys
-from config import GEMINI_API_KEY, PEXELS_API_KEY, PIXABAY_API_KEY
+from config import DEEPSEEK_API_KEY, PEXELS_API_KEY, PIXABAY_API_KEY
 from llm_processor import process_script, generate_ai_prompt
 from media_search import search_media
 from asset_processor import create_asset, create_number_overlay
@@ -8,8 +8,8 @@ from output_generator import create_project_structure, add_image_prompt, finaliz
 
 def validate_api_keys():
     missing = []
-    if not GEMINI_API_KEY:
-        missing.append("GEMINI_API_KEY")
+    if not DEEPSEEK_API_KEY:
+        missing.append("DEEPSEEK_API_KEY")
     if not PEXELS_API_KEY:
         missing.append("PEXELS_API_KEY")
     if not PIXABAY_API_KEY:
@@ -21,7 +21,7 @@ def validate_api_keys():
         for key in missing:
             print(f"  {key}=your_key_here")
         print("\nGet free API keys at:")
-        print("  - Gemini: https://aistudio.google.com/apikey")
+        print("  - DeepSeek: https://platform.deepseek.com/")
         print("  - Pexels: https://www.pexels.com/api/")
         print("  - Pixabay: https://pixabay.com/api/docs/")
         return False

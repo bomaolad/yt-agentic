@@ -1,32 +1,47 @@
-from google import genai
-from google.genai import errors
+import requests
 import json
 import time
 import random
-from config import GEMINI_API_KEY, BEAT_LENGTH_MIN, BEAT_LENGTH_MAX, PHASES, AI_STYLE_KEYWORDS, SFX_MAPPINGS
+from config import BEAT_LENGTH_MIN, BEAT_LENGTH_MAX, PHASES, AI_STYLE_KEYWORDS, SFX_MAPPINGS
+import os
+from dotenv import load_dotenv
 
-client = genai.Client(api_key=GEMINI_API_KEY)
-MODEL_NAME = 'models/gemini-2.0-flash-lite'
+load_dotenv()
 
-def generate_content(prompt, retries=10, initial_delay=5.0):
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+MODEL_NAME = "deepseek-chat"
+
+def generate_content(prompt, retries=5, initial_delay=2.0):
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": MODEL_NAME,
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant for video editing tasks. Always respond with valid JSON when asked."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.7
+    }
+    
     for attempt in range(retries):
-        try:
-            response = client.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt
-            )
-            return response.text.strip()
-        except errors.ClientError as e:
-            if e.code == 429:
-                if attempt == retries - 1:
-                    raise  # Re-raise if max retries reached
-                
-                # Exponential backoff with jitter: 2s, 4s, 8s, 16s + random jitter
-                sleep_time = (initial_delay * (2 ** attempt)) + random.uniform(0.1, 1.0)
-                print(f"       ⚠️  Rate limit hit (429). Waiting {sleep_time:.1f}s before retry {attempt + 1}/{retries}...")
-                time.sleep(sleep_time)
-            else:
-                raise  # Re-raise other errors immediately
+        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return data["choices"][0]["message"]["content"].strip()
+        elif response.status_code == 429:
+            if attempt == retries - 1:
+                raise Exception(f"Rate limit exceeded after {retries} retries")
+            sleep_time = (initial_delay * (2 ** attempt)) + random.uniform(0.1, 1.0)
+            print(f"       ⚠️  Rate limit hit (429). Waiting {sleep_time:.1f}s before retry {attempt + 1}/{retries}...")
+            time.sleep(sleep_time)
+        else:
+            raise Exception(f"DeepSeek API error {response.status_code}: {response.text}")
+    
     return ""
 
 segment_script_to_beats = lambda script_text: generate_content(
@@ -126,7 +141,6 @@ def process_script(script_text):
     print(f"       📊 Processing {len(beats)} beats in batches of 10...")
     processed_beats = []
     
-    # Process in batches of 10
     batch_size = 10
     total_beats = len(beats)
     
@@ -138,14 +152,10 @@ def process_script(script_text):
             analysis_response = analyze_beats_batch(batch)
             batch_analysis = parse_json_response(analysis_response)
             
-            # Ensure we have analysis for each beat, even if LLM messes up count
-            # Map by index or matching text ideally, but simple zip for now
-            # Fallback for mismatches
             if len(batch_analysis) != len(batch):
                 print(f"       ⚠️  Batch size mismatch (Sent {len(batch)}, Got {len(batch_analysis)}). Using fallback alignment.")
             
             for j, beat in enumerate(batch):
-                # Safely get analysis or default
                 if j < len(batch_analysis):
                     analysis = batch_analysis[j]
                 else:
@@ -159,13 +169,12 @@ def process_script(script_text):
                 sfx_category = analysis.get('sfx', 'transition').lower()
                 sfx = SFX_MAPPINGS.get(sfx_category, "Swoosh, transition swoosh")
                 
-                # Reconstruct the singular analysis object structure expected by main.py
                 beat_analysis_obj = {
                     "beat": beat,
                     "type": analysis.get('type', 'abstract'),
                     "search_query": analysis.get('search_query', ''),
                     "meme_suggestion": analysis.get('meme_suggestion'),
-                    "person": None, # Simplification for batching
+                    "person": None,
                     "brand": None,
                     "year": None, 
                     "is_abstract": analysis.get('type') == 'abstract'
@@ -181,7 +190,6 @@ def process_script(script_text):
                 
         except Exception as e:
             print(f"       ❌ Error processing batch: {e}")
-            # Fallback for entire failed batch
             for j, beat in enumerate(batch):
                 global_index = i + j
                 processed_beats.append({

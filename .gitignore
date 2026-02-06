@@ -1,3 +1,21 @@
-# local env files
-.env*.local
+# Environment files
 .env
+.env*.local
+
+# Generated output folders (all project folders created by the script)
+LUXURY-BRANDS/
+luxury-brands/
+tests/
+Video_Project/
+**/Assets/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/

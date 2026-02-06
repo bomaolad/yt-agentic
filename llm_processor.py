@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
-MODEL_NAME = "deepseek-chat"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+MODEL_NAME = "llama-3.1-8b-instant"
 
 def generate_content(prompt, retries=5, initial_delay=2.0):
     headers = {
-        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
     }
     
@@ -24,11 +24,12 @@ def generate_content(prompt, retries=5, initial_delay=2.0):
             {"role": "system", "content": "You are a helpful assistant for video editing tasks. Always respond with valid JSON when asked."},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.7
+        "temperature": 0.7,
+        "max_tokens": 4096
     }
     
     for attempt in range(retries):
-        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload)
+        response = requests.post(GROQ_API_URL, headers=headers, json=payload)
         
         if response.status_code == 200:
             data = response.json()
@@ -40,7 +41,7 @@ def generate_content(prompt, retries=5, initial_delay=2.0):
             print(f"       ⚠️  Rate limit hit (429). Waiting {sleep_time:.1f}s before retry {attempt + 1}/{retries}...")
             time.sleep(sleep_time)
         else:
-            raise Exception(f"DeepSeek API error {response.status_code}: {response.text}")
+            raise Exception(f"Groq API error {response.status_code}: {response.text}")
     
     return ""
 

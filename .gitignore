@@ -2,12 +2,8 @@
 .env
 .env*.local
 
-# Generated output folders (all project folders created by the script)
-LUXURY-BRANDS/
-luxury-brands/
-tests/
+# Generated output folders (all outputs go here)
 Video_Project/
-**/Assets/
 
 # Python
 __pycache__/

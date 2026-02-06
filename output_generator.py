@@ -2,11 +2,15 @@ import os
 import json
 from utils import ensure_directory, write_json, append_to_file, sanitize_filename
 
+OUTPUT_BASE_DIR = "Video_Project"
+
 def create_project_structure(project_title):
     safe_title = sanitize_filename(project_title)
-    project_dir = os.path.join(os.getcwd(), safe_title)
+    base_dir = os.path.join(os.getcwd(), OUTPUT_BASE_DIR)
+    project_dir = os.path.join(base_dir, safe_title)
     assets_dir = os.path.join(project_dir, "Assets")
     
+    ensure_directory(base_dir)
     ensure_directory(project_dir)
     ensure_directory(assets_dir)
     

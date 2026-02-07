@@ -4,16 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
-PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY", "")
-
-BEAT_LENGTH_MIN = 25
-BEAT_LENGTH_MAX = 30
-
-PEXELS_VIDEO_URL = "https://api.pexels.com/videos/search"
-PEXELS_IMAGE_URL = "https://api.pexels.com/v1/search"
-PIXABAY_URL = "https://pixabay.com/api/videos/"
-PIXABAY_IMAGE_URL = "https://pixabay.com/api/"
+SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
 
 MAX_VIDEO_DURATION = 3
 

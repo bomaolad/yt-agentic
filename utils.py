@@ -25,7 +25,6 @@ def create_text_overlay_png(text, filepath, width=1920, height=1080):
     img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     
-    font_size = 120
     font = ImageFont.load_default()
     
     bbox = draw.textbbox((0, 0), text, font=font)

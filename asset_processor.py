@@ -1,7 +1,6 @@
 import os
-import requests
 from config import MAX_VIDEO_DURATION, KEN_BURNS_INSTRUCTION
-from utils import download_file, create_black_placeholder, create_text_overlay_png, trim_video, contains_number_or_currency, extract_numbers, ensure_directory
+from utils import download_file, create_black_placeholder, create_text_overlay_png, trim_video, contains_number_or_currency, extract_numbers
 
 def download_and_process_video(url, output_path, headers=None):
     temp_path = output_path + ".temp.mp4"

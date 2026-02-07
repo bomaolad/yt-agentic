@@ -1,6 +1,6 @@
 import os
 import sys
-from config import GROQ_API_KEY, PEXELS_API_KEY, PIXABAY_API_KEY
+from config import GROQ_API_KEY, SERPER_API_KEY
 from llm_processor import process_script, generate_ai_prompt
 from media_search import search_media
 from asset_processor import create_asset, create_number_overlay
@@ -10,10 +10,8 @@ def validate_api_keys():
     missing = []
     if not GROQ_API_KEY:
         missing.append("GROQ_API_KEY")
-    if not PEXELS_API_KEY:
-        missing.append("PEXELS_API_KEY")
-    if not PIXABAY_API_KEY:
-        missing.append("PIXABAY_API_KEY")
+    if not SERPER_API_KEY:
+        missing.append("SERPER_API_KEY")
     
     if missing:
         print(f"❌ Missing API keys in .env file: {', '.join(missing)}")
@@ -22,8 +20,7 @@ def validate_api_keys():
             print(f"  {key}=your_key_here")
         print("\nGet free API keys at:")
         print("  - Groq: https://console.groq.com/keys")
-        print("  - Pexels: https://www.pexels.com/api/")
-        print("  - Pixabay: https://pixabay.com/api/docs/")
+        print("  - Serper: https://serper.dev/ (2500 free searches/month)")
         return False
     return True
 
@@ -55,46 +52,23 @@ def process_beat(beat_data, paths):
     ai_prompt = None
     asset_result = None
     
-    if analysis.get('type') == 'historical' and not analysis.get('is_abstract'):
-        search_query = analysis.get('search_query', beat_data['beat'])
-        print(f"       🔍 Searching for: {search_query}")
-        
-        media_result = search_media(search_query, "video")
-        
-        if media_result.get('error') == 'rate_limit':
-            print("       ⚠️  Rate limited, trying image search...")
-            media_result = search_media(search_query, "image")
-        
-        if media_result.get('url'):
-            print(f"       ✅ Found {media_result['type']} from {media_result['source']}")
-            asset_result = create_asset(
-                beat_data,
-                media_result,
-                paths['assets_dir'],
-                beat_data['index'],
-                beat_data['phase']
-            )
-        else:
-            print("       ⚠️  No footage found, generating AI prompt...")
-            ai_prompt = generate_ai_prompt(beat_data['beat'])
+    search_query = analysis.get('search_query') or beat_data['beat']
+    print(f"       🔍 Searching Google Images: {search_query[:50]}...")
+    
+    media_result = search_media(search_query)
+    
+    if media_result.get('url'):
+        print(f"       ✅ Found image from Google")
+        asset_result = create_asset(
+            beat_data,
+            media_result,
+            paths['assets_dir'],
+            beat_data['index'],
+            beat_data['phase']
+        )
     else:
-        meme = analysis.get('meme_suggestion')
-        if meme:
-            print(f"       🎭 Meme suggestion: {meme}")
-            media_result = search_media(meme, "image")
-            if media_result.get('url'):
-                print(f"       ✅ Found meme image from {media_result['source']}")
-                asset_result = create_asset(
-                    beat_data,
-                    media_result,
-                    paths['assets_dir'],
-                    beat_data['index'],
-                    beat_data['phase']
-                )
-        
-        if not asset_result:
-            print("       🎨 Generating cinematic AI prompt...")
-            ai_prompt = generate_ai_prompt(beat_data['beat'])
+        print(f"       ⚠️  No image found, generating AI prompt...")
+        ai_prompt = generate_ai_prompt(beat_data['beat'])
     
     if ai_prompt:
         add_image_prompt(

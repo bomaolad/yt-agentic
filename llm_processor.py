@@ -2,7 +2,7 @@ import requests
 import json
 import time
 import random
-from config import BEAT_LENGTH_MIN, BEAT_LENGTH_MAX, PHASES, AI_STYLE_KEYWORDS, SFX_MAPPINGS
+from config import AI_STYLE_KEYWORDS, SFX_MAPPINGS
 import os
 from dotenv import load_dotenv
 
@@ -49,14 +49,15 @@ segment_script_to_beats = lambda script_text: generate_content(
     f"""You are a video editor AI. Break this script into "Visual Beats" for a YouTube video.
 
 RULES:
-1. Each beat should be 25-30 characters (roughly 1.5-2 seconds of spoken word)
-2. Each beat should be a natural phrase or idea
-3. Return ONLY a valid JSON array of beats, no other text
+1. Split the script at EVERY comma (,) or period (.) punctuation mark
+2. Each beat should be a natural phrase or sentence fragment
+3. Keep the original text exactly - do not rephrase or summarize
+4. Return ONLY a valid JSON array of beats, no other text
 
 Script: "{script_text}"
 
 Return format example:
-["In 1994 Steve Jobs", "returned to Apple", "The company was failing", "But he had a plan"]"""
+["In 1994", "Steve Jobs returned to Apple", "The company was failing", "But he had a plan"]"""
 )
 
 def analyze_beats_batch(beats):
